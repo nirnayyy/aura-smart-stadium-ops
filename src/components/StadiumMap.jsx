@@ -7,6 +7,18 @@ export default function StadiumMap({ state, aiData, selectedElement, setSelected
 
   const isPowerOffline = incidents.some(i => i.id === 'incident-power');
 
+  // Keyboard navigation helper for interactive SVG elements
+  const makeKeyboardInteractive = (action) => ({
+    tabIndex: 0,
+    role: "button",
+    onKeyDown: (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        action();
+      }
+    }
+  });
+
   const getSectionColor = (secId) => {
     if (secId === 'Sec-108' || secId === 'Sec-East') {
       if (isPowerOffline) return 'rgba(75, 85, 99, 0.15)'; // Greyed out offline color
@@ -85,8 +97,8 @@ export default function StadiumMap({ state, aiData, selectedElement, setSelected
       </div>
 
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <svg viewBox="0 0 600 460" className="map-svg">
-          <defs>
+        <svg viewBox="0 0 600 460" className="map-svg" aria-label="Smart Stadium Interactive Telemetry Grid">
+          <defs aria-hidden="true">
             <filter id="glow-effect" x="-30%" y="-30%" width="160%" height="160%">
               <feGaussianBlur stdDeviation="5" result="blur" />
               <feComposite in="SourceGraphic" in2="blur" operator="over" />
@@ -124,7 +136,7 @@ export default function StadiumMap({ state, aiData, selectedElement, setSelected
           </defs>
 
           {/* Blueprint Grid */}
-          <g stroke="rgba(255, 255, 255, 0.015)" strokeWidth="0.5">
+          <g stroke="rgba(255, 255, 255, 0.015)" strokeWidth="0.5" aria-hidden="true">
             {Array.from({ length: 13 }).map((_, i) => (
               <line key={`v-${i}`} x1={i * 50} y1={0} x2={i * 50} y2={460} />
             ))}
@@ -134,16 +146,16 @@ export default function StadiumMap({ state, aiData, selectedElement, setSelected
           </g>
 
           {/* Outer Structure Rings */}
-          <ellipse cx="300" cy="230" rx="270" ry="200" fill="none" stroke="rgba(255,255,255,0.025)" strokeWidth="2" />
-          <ellipse cx="300" cy="230" rx="250" ry="180" fill="none" stroke="rgba(255,255,255,0.015)" strokeWidth="1" strokeDasharray="4,6" />
-          <ellipse cx="300" cy="230" rx="230" ry="160" fill="none" stroke="rgba(255,255,255,0.008)" strokeWidth="1" strokeDasharray="2,8" />
+          <ellipse cx="300" cy="230" rx="270" ry="200" fill="none" stroke="rgba(255,255,255,0.025)" strokeWidth="2" aria-hidden="true" />
+          <ellipse cx="300" cy="230" rx="250" ry="180" fill="none" stroke="rgba(255,255,255,0.015)" strokeWidth="1" strokeDasharray="4,6" aria-hidden="true" />
+          <ellipse cx="300" cy="230" rx="230" ry="160" fill="none" stroke="rgba(255,255,255,0.008)" strokeWidth="1" strokeDasharray="2,8" aria-hidden="true" />
 
           {/* Heatmap Overlays (crowd density blobs) */}
           {gates.C.scannerStatus === 'Error' && (
-            <ellipse cx="300" cy="370" rx="80" ry="40" fill="url(#heatmap-red)" style={{ animation: 'heatmap-pulse 3s ease-in-out infinite' }} />
+            <ellipse cx="300" cy="370" rx="80" ry="40" fill="url(#heatmap-red)" style={{ animation: 'heatmap-pulse 3s ease-in-out infinite' }} aria-hidden="true" />
           )}
           {incidents.find(i => i.id === 'incident-medical-108') && (
-            <ellipse cx="460" cy="220" rx="50" ry="50" fill="url(#heatmap-red)" style={{ animation: 'heatmap-pulse 2.5s ease-in-out infinite' }} />
+            <ellipse cx="460" cy="220" rx="50" ry="50" fill="url(#heatmap-red)" style={{ animation: 'heatmap-pulse 2.5s ease-in-out infinite' }} aria-hidden="true" />
           )}
 
           {/* SEATING SECTORS */}
@@ -155,6 +167,8 @@ export default function StadiumMap({ state, aiData, selectedElement, setSelected
             strokeWidth="1" 
             className="stadium-section"
             onClick={() => setSelectedElement({ type: 'stand', name: 'North Stand (Sec 300-312)', details: 'Telemetry: 62% capacity. Flow rate: nominal. All concourse exits clear.' })}
+            {...makeKeyboardInteractive(() => setSelectedElement({ type: 'stand', name: 'North Stand (Sec 300-312)', details: 'Telemetry: 62% capacity. Flow rate: nominal. All concourse exits clear.' }))}
+            aria-label="North Stand (Sections 300 to 312). Status nominal. Occupancy: 62 percent."
           />
 
           {/* South Tier */}
@@ -165,6 +179,8 @@ export default function StadiumMap({ state, aiData, selectedElement, setSelected
             strokeWidth="1" 
             className="stadium-section"
             onClick={() => setSelectedElement({ type: 'stand', name: 'South Stand (Sec 100-112)', details: `Telemetry: 84% capacity. ${gates.C.scannerStatus === 'Error' ? 'ALERT: South exits congested — Gate C scanner breakdown.' : 'Flow rate: nominal.'}` })}
+            {...makeKeyboardInteractive(() => setSelectedElement({ type: 'stand', name: 'South Stand (Sec 100-112)', details: `Telemetry: 84% capacity. ${gates.C.scannerStatus === 'Error' ? 'ALERT: South exits congested — Gate C scanner breakdown.' : 'Flow rate: nominal.'}` }))}
+            aria-label={`South Stand (Sections 100 to 112). Occupancy: 84 percent. ${gates.C.scannerStatus === 'Error' ? 'Warning: Congestion due to Gate C scanner breakdown.' : 'Status nominal.'}`}
           />
 
           {/* West Tier */}
@@ -175,6 +191,8 @@ export default function StadiumMap({ state, aiData, selectedElement, setSelected
             strokeWidth="1" 
             className="stadium-section"
             onClick={() => setSelectedElement({ type: 'stand', name: 'West Stand (Sec 200-212)', details: 'Telemetry: 70% capacity. Flow rate: nominal.' })}
+            {...makeKeyboardInteractive(() => setSelectedElement({ type: 'stand', name: 'West Stand (Sec 200-212)', details: 'Telemetry: 70% capacity. Flow rate: nominal.' }))}
+            aria-label="West Stand (Sections 200 to 212). Status nominal. Occupancy: 70 percent."
           />
 
           {/* East Tier */}
@@ -186,16 +204,18 @@ export default function StadiumMap({ state, aiData, selectedElement, setSelected
             strokeDasharray={isPowerOffline ? "4,4" : "0"}
             className="stadium-section"
             onClick={() => setSelectedElement({ type: 'stand', name: 'East Stand (Sec 102-114)', details: isPowerOffline ? 'ALERT: Quadrant auxiliary power grid failure. Telemetry sensors offline.' : `Telemetry: 78% capacity. ${incidents.find(i=>i.id==='incident-medical-108') ? 'ALERT: Emergency responders active in Section 108.' : 'Flow rate: nominal.'}` })}
+            {...makeKeyboardInteractive(() => setSelectedElement({ type: 'stand', name: 'East Stand (Sec 102-114)', details: isPowerOffline ? 'ALERT: Quadrant auxiliary power grid failure. Telemetry sensors offline.' : `Telemetry: 78% capacity. ${incidents.find(i=>i.id==='incident-medical-108') ? 'ALERT: Emergency responders active in Section 108.' : 'Flow rate: nominal.'}` }))}
+            aria-label={`East Stand (Sections 102 to 114). Occupancy: 78 percent. ${isPowerOffline ? 'Critical warning: Power grid failure, telemetry sensors offline.' : incidents.find(i=>i.id==='incident-medical-108') ? 'Alert: Emergency medical responders active in Section 108.' : 'Status nominal.'}`}
           />
 
           {/* Pitch */}
-          <rect x="230" y="170" width="140" height="90" rx="4" fill="url(#pitchGrad)" stroke="rgba(255, 255, 255, 0.05)" strokeWidth="1.5" />
-          <ellipse cx="300" cy="215" rx="20" ry="20" fill="none" stroke="rgba(255, 255, 255, 0.04)" strokeWidth="1" />
-          <line x1="230" y1="215" x2="370" y2="215" stroke="rgba(255, 255, 255, 0.04)" strokeWidth="1" />
+          <rect x="230" y="170" width="140" height="90" rx="4" fill="url(#pitchGrad)" stroke="rgba(255, 255, 255, 0.05)" strokeWidth="1.5" aria-hidden="true" />
+          <ellipse cx="300" cy="215" rx="20" ry="20" fill="none" stroke="rgba(255, 255, 255, 0.04)" strokeWidth="1" aria-hidden="true" />
+          <line x1="230" y1="215" x2="370" y2="215" stroke="rgba(255, 255, 255, 0.04)" strokeWidth="1" aria-hidden="true" />
           
           {/* Goal boxes */}
-          <rect x="230" y="195" width="20" height="40" rx="1" fill="none" stroke="rgba(255, 255, 255, 0.03)" strokeWidth="0.5" />
-          <rect x="350" y="195" width="20" height="40" rx="1" fill="none" stroke="rgba(255, 255, 255, 0.03)" strokeWidth="0.5" />
+          <rect x="230" y="195" width="20" height="40" rx="1" fill="none" stroke="rgba(255, 255, 255, 0.03)" strokeWidth="0.5" aria-hidden="true" />
+          <rect x="350" y="195" width="20" height="40" rx="1" fill="none" stroke="rgba(255, 255, 255, 0.03)" strokeWidth="0.5" aria-hidden="true" />
 
           {/* Crowd Density Particles */}
           {crowdParticles.map(p => (
@@ -206,6 +226,7 @@ export default function StadiumMap({ state, aiData, selectedElement, setSelected
               r={p.r} 
               fill={p.color} 
               opacity={p.opacity}
+              aria-hidden="true"
               style={{ animation: `breathe ${3 + p.delay}s ease-in-out infinite`, animationDelay: `${p.delay}s` }}
             />
           ))}
@@ -220,6 +241,7 @@ export default function StadiumMap({ state, aiData, selectedElement, setSelected
               strokeDasharray="5,4" 
               className="animated-route"
               filter="url(#glow-effect)"
+              aria-label="Pedestrian evacuation route from Gate C to Gate D"
             />
           )}
           {mapRouting.suggestedRoutes.includes('GateC-to-GateB') && (
@@ -231,6 +253,7 @@ export default function StadiumMap({ state, aiData, selectedElement, setSelected
               strokeDasharray="5,4" 
               className="animated-route"
               filter="url(#glow-effect)"
+              aria-label="Pedestrian evacuation route from Gate C to Gate B"
             />
           )}
 
@@ -241,7 +264,13 @@ export default function StadiumMap({ state, aiData, selectedElement, setSelected
             { cx: 380, cy: 290, label: 'F3', status: 'ok' },
             { cx: 420, cy: 310, label: 'F4', status: 'ok' },
           ].map((node, i) => (
-            <g key={`food-${i}`} style={{ cursor: 'pointer' }} onClick={() => setSelectedElement({ type: 'stand', name: state.concessions[i]?.name || 'Concession', details: `Wait: ${state.concessions[i]?.waitTime}min | Stock: ${state.concessions[i]?.stockLevel}%` })}>
+            <g 
+              key={`food-${i}`} 
+              style={{ cursor: 'pointer' }} 
+              onClick={() => setSelectedElement({ type: 'stand', name: state.concessions[i]?.name || 'Concession', details: `Wait: ${state.concessions[i]?.waitTime}min | Stock: ${state.concessions[i]?.stockLevel}%` })}
+              {...makeKeyboardInteractive(() => setSelectedElement({ type: 'stand', name: state.concessions[i]?.name || 'Concession', details: `Wait: ${state.concessions[i]?.waitTime}min | Stock: ${state.concessions[i]?.stockLevel}%` }))}
+              aria-label={`${state.concessions[i]?.name || 'Concession food stall'}. Wait time is ${state.concessions[i]?.waitTime} minutes. Stock level is ${state.concessions[i]?.stockLevel} percent.`}
+            >
               <rect x={node.cx - 8} y={node.cy - 8} width="16" height="16" rx="3" fill={node.status === 'low' ? 'rgba(245,158,11,0.15)' : 'rgba(255,255,255,0.03)'} stroke={node.status === 'low' ? 'rgba(245,158,11,0.4)' : 'rgba(255,255,255,0.08)'} strokeWidth="0.5" />
               <text x={node.cx} y={node.cy + 3} fill={node.status === 'low' ? 'var(--color-amber)' : 'var(--text-secondary)'} fontSize="7" textAnchor="middle" fontFamily="var(--font-mono)" fontWeight="600">{node.label}</text>
             </g>
@@ -258,7 +287,14 @@ export default function StadiumMap({ state, aiData, selectedElement, setSelected
             const isError = gates[gate.key].scannerStatus === 'Error';
             
             return (
-              <g key={gate.key} className="stadium-gate" style={{ cursor: 'pointer' }} onClick={() => setSelectedElement({ type: 'gate', key: gate.key, ...gates[gate.key] })}>
+              <g 
+                key={gate.key} 
+                className="stadium-gate" 
+                style={{ cursor: 'pointer' }} 
+                onClick={() => setSelectedElement({ type: 'gate', key: gate.key, ...gates[gate.key] })}
+                {...makeKeyboardInteractive(() => setSelectedElement({ type: 'gate', key: gate.key, ...gates[gate.key] }))}
+                aria-label={`${gate.label}. Queue size: ${gates[gate.key].queue} fans. Flow rate: ${gates[gate.key].flowRate} per minute. Scanner status: ${gates[gate.key].scannerStatus}.`}
+              >
                 {/* Outer glow ring */}
                 <circle cx={gate.cx} cy={gate.cy} r="18" fill="none" stroke={color} strokeWidth="0.5" opacity="0.15" />
                 {/* Inner ring */}
@@ -305,6 +341,8 @@ export default function StadiumMap({ state, aiData, selectedElement, setSelected
                 key={incident.id} 
                 style={{ cursor: 'pointer' }} 
                 onClick={() => setSelectedElement({ type: 'incident', ...incident })}
+                {...makeKeyboardInteractive(() => setSelectedElement({ type: 'incident', ...incident }))}
+                aria-label={`Critical Incident: ${incident.title}. Location: ${incident.location}. Severity: ${incident.severity}. Description: ${incident.description}.`}
               >
                 {/* Incident halo */}
                 <circle cx={pos.cx} cy={pos.cy} r="22" fill="none" stroke="var(--color-red)" strokeWidth="0.5" opacity="0.3" className="animated-route" style={{ animationDuration: '3s' }} />

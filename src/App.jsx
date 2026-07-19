@@ -23,6 +23,7 @@ function ParticleCanvas({ theme }) {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
+    if (!ctx) return;
     
     const resize = () => {
       canvas.width = window.innerWidth;
@@ -264,8 +265,9 @@ export default function App() {
             style={{ padding: '6px', borderRadius: '50%', background: 'rgba(255,255,255,0.02)', border: 'var(--border-glass)' }}
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} mode`}
+            aria-label={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} mode`}
           >
-            {theme === 'dark' ? <Sun size={13} style={{ color: 'var(--color-amber)' }} /> : <Moon size={13} style={{ color: 'var(--color-cyan)' }} />}
+            {theme === 'dark' ? <Sun size={13} style={{ color: 'var(--color-amber)' }} aria-hidden="true" /> : <Moon size={13} style={{ color: 'var(--color-cyan)' }} aria-hidden="true" />}
           </button>
 
           {/* Logistics Dispatch restock button */}
@@ -274,27 +276,28 @@ export default function App() {
             style={{ padding: '5px 12px', fontSize: '10px', display: 'flex', alignItems: 'center', gap: '4px' }}
             onClick={dispatchRestock}
             disabled={state.restockStatus !== 'Idle'}
+            aria-label={`Restock concession carts, current status is ${state.restockStatus}`}
           >
-            <RefreshCw size={10} className={state.restockStatus === 'In Progress' ? 'spin-slow' : ''} />
+            <RefreshCw size={10} className={state.restockStatus === 'In Progress' ? 'spin-slow' : ''} aria-hidden="true" />
             RESTOCK CARTS
           </button>
 
           {/* Live Status Indicator */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '10px' }} aria-live="polite">
             <span style={{ position: 'relative', display: 'inline-flex' }}>
               <span style={{ 
                 width: '6px', height: '6px', 
                 background: isPlaying ? 'var(--color-green)' : 'var(--color-amber)', 
                 borderRadius: '50%',
                 boxShadow: isPlaying ? 'var(--glow-green)' : 'var(--glow-yellow)'
-              }} />
+              }} aria-hidden="true" />
               {isPlaying && (
                 <span style={{
                   position: 'absolute', inset: '-2px',
                   borderRadius: '50%',
                   background: 'var(--color-green)',
                   animation: 'status-ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite'
-                }} />
+                }} aria-hidden="true" />
               )}
             </span>
             <span style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)', letterSpacing: '0.05em' }}>
@@ -307,19 +310,21 @@ export default function App() {
             className="mode-btn active"
             style={{ padding: '5px 12px', fontSize: '10px', borderRadius: 'var(--radius-pill)', display: 'flex', alignItems: 'center', gap: '4px' }}
             onClick={() => setIsPlaying(!isPlaying)}
+            aria-label={isPlaying ? 'Pause simulation loop' : 'Resume simulation loop'}
           >
-            {isPlaying ? <Pause size={11} /> : <Play size={11} />}
+            {isPlaying ? <Pause size={11} aria-hidden="true" /> : <Play size={11} aria-hidden="true" />}
             {isPlaying ? 'PAUSE' : 'RESUME'}
           </button>
 
           {/* Simulation speed multipliers */}
-          <div style={{ display: 'flex', background: 'rgba(255,255,255,0.015)', border: 'var(--border-glass)', borderRadius: 'var(--radius-pill)', padding: '2px' }}>
+          <div style={{ display: 'flex', background: 'rgba(255,255,255,0.015)', border: 'var(--border-glass)', borderRadius: 'var(--radius-pill)', padding: '2px' }} role="group" aria-label="Simulation speed multiplier">
             {[1, 2, 5].map(speed => (
               <button
                 key={speed}
                 onClick={() => setSimSpeed(speed)}
                 className={`mode-btn ${simSpeed === speed ? 'active' : ''}`}
                 style={{ padding: '3px 8px', fontSize: '9px', borderRadius: 'var(--radius-pill)' }}
+                aria-label={`Set simulation speed to ${speed}x`}
               >
                 {speed}x
               </button>
@@ -327,24 +332,27 @@ export default function App() {
           </div>
 
           {/* Dual/Admin/Fan view switcher */}
-          <div className="mode-switcher">
+          <div className="mode-switcher" role="group" aria-label="Dashboard view modes">
             <button 
               className={`mode-btn ${viewMode === 'both' ? 'active' : ''}`}
               onClick={() => setViewMode('both')}
+              aria-label="Show Command Center and Fan App side by side"
             >
-              <Activity size={13} /> DUAL
+              <Activity size={13} aria-hidden="true" /> DUAL
             </button>
             <button 
               className={`mode-btn ${viewMode === 'admin' ? 'active' : ''}`}
               onClick={() => setViewMode('admin')}
+              aria-label="Show Command Center console only"
             >
-              <ShieldCheck size={13} /> COMMAND
+              <ShieldCheck size={13} aria-hidden="true" /> COMMAND
             </button>
             <button 
               className={`mode-btn ${viewMode === 'fan' ? 'active' : ''}`}
               onClick={() => setViewMode('fan')}
+              aria-label="Show Fan mobile application only"
             >
-              <Smartphone size={13} /> FAN APP
+              <Smartphone size={13} aria-hidden="true" /> FAN APP
             </button>
           </div>
         </div>

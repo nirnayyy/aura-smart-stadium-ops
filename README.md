@@ -75,6 +75,38 @@ AURA is styled with pure custom CSS (located in `src/index.css` and `src/App.css
 
 ---
 
+## Accessibility & Inclusion (WCAG Standards)
+
+AURA 3.0 is built to support modern accessibility criteria:
+* **Keyboard Navigation:** All interactive elements in the command grid (SVG sectors, gates, and concessions) are tab-focusable and can be selected using `Enter` or `Space` keys.
+* **ARIA Semantic Tags:** Components utilize correct landmark roles (`tablist`, `tab`, `progressbar`, `alert`) and clear descriptive labels (`aria-label`, `aria-live="assertive"` for emergency warnings) to guide screen readers seamlessly.
+* **Decorative SVGs:** Background grids, particle systems, and aesthetic lines are marked with `aria-hidden="true"` to prevent screen reader noise.
+
+---
+
+## Security & Sanitization
+
+AURA 3.0 implements client-side and logical guards to prevent security compromises:
+* **Input Sanitization:** User chat entries in the Fan App undergo HTML entity encoding to neutralize potential Cross-Site Scripting (XSS) script injections.
+* **Pre-order Pricing Guards:** Calculations for concession discounts are validated on the client state, checking bounds to prevent price manipulation or order spoofing.
+* **Bounds Verification:** Active state deep-copies and user string bounds are validated and protected via defensive checks.
+
+---
+
+## Automated Test Coverage
+
+The project features a full unit and integration test suite using **Vitest** and **React Testing Library**:
+* **Simulation Engine Tests:** Validates time clock ticks, goal score injections, restocking transitions, and scenario triggers.
+* **AI Orchestrator Tests:** Asserts correct agent negotiation outputs, dynamic pricing shifts, and wayfinding alerts under nominal/incident states.
+* **React Integration Tests:** Renders component layouts, simulates tab switching, validates input sanitization, and verifies progress bar accessibility roles.
+
+Run tests using:
+```bash
+npm run test
+```
+
+---
+
 ## Getting Started
 
 ### Prerequisites

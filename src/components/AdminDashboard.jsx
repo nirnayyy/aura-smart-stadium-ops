@@ -13,11 +13,19 @@ function RadialGauge({ value, max, label, color = 'var(--color-cyan)', size = 86
   const circumference = 2 * Math.PI * radius;
   const percentage = Math.min(value / max, 1);
   const offset = circumference * (1 - percentage);
+  const percentValue = Math.round(percentage * 100);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+    <div 
+      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}
+      role="progressbar"
+      aria-valuenow={percentValue}
+      aria-valuemin="0"
+      aria-valuemax="100"
+      aria-label={`${label} gauge, current level ${percentValue}%`}
+    >
       <div className="radial-gauge" style={{ width: size, height: size }}>
-        <svg width={size} height={size} viewBox="0 0 86 86">
+        <svg width={size} height={size} viewBox="0 0 86 86" aria-hidden="true">
           <circle cx="43" cy="43" r={radius} className="gauge-bg" />
           <circle 
             cx="43" cy="43" r={radius} 
@@ -29,7 +37,7 @@ function RadialGauge({ value, max, label, color = 'var(--color-cyan)', size = 86
           />
         </svg>
         <div className="gauge-value">
-          <span style={{ color }}>{Math.round(percentage * 100)}</span>
+          <span style={{ color }}>{percentValue}</span>
         </div>
       </div>
       <span className="gauge-label">{label}</span>
@@ -41,7 +49,7 @@ function RadialGauge({ value, max, label, color = 'var(--color-cyan)', size = 86
 function Sparkline({ data, color = 'var(--color-cyan)' }) {
   const max = Math.max(1, ...data);
   return (
-    <div className="sparkline-container">
+    <div className="sparkline-container" role="img" aria-label={`Sparkline graph history: ${data.join(', ')}`}>
       {data.map((val, i) => (
         <div 
           key={i} 
@@ -215,35 +223,35 @@ export default function AdminDashboard({
               style={{ border: '1px solid rgba(239, 68, 68, 0.15)', color: 'var(--color-red)', background: state.incidents.some(i=>i.id==='incident-gate-c') ? 'rgba(239,68,68,0.05)' : 'transparent' }}
               onClick={() => triggerScenario('GATE_JAM')}
             >
-              <AlertTriangle size={14} /> Gate C Turnstile Jam
+              <AlertTriangle size={14} aria-hidden="true" /> Gate C Turnstile Jam
             </button>
             <button 
               className="scenario-btn"
               style={{ border: '1px solid rgba(245, 158, 11, 0.15)', color: 'var(--color-amber)', background: state.incidents.some(i=>i.id==='incident-taco-stock') ? 'rgba(245,158,11,0.05)' : 'transparent' }}
               onClick={() => triggerScenario('CONCESSION_RUSH')}
             >
-              <Users size={14} /> Concession Stock Out
+              <Users size={14} aria-hidden="true" /> Concession Stock Out
             </button>
             <button 
               className="scenario-btn"
               style={{ border: '1px solid rgba(239, 68, 68, 0.15)', color: 'var(--color-red)', background: state.incidents.some(i=>i.id==='incident-medical-108') ? 'rgba(239,68,68,0.05)' : 'transparent' }}
               onClick={() => triggerScenario('MEDICAL_ALERT')}
             >
-              <Activity size={14} /> Sec 108 Medical Alert
+              <Activity size={14} aria-hidden="true" /> Sec 108 Medical Alert
             </button>
             <button 
               className="scenario-btn"
               style={{ border: '1px solid rgba(99, 102, 241, 0.15)', color: 'var(--color-indigo)', background: state.incidents.some(i=>i.id==='incident-storm') ? 'rgba(99,102,241,0.05)' : 'transparent' }}
               onClick={() => triggerScenario('STORM_EVACUATION')}
             >
-              <CloudLightning size={14} /> Egress Storm Warning
+              <CloudLightning size={14} aria-hidden="true" /> Egress Storm Warning
             </button>
             <button 
               className="scenario-btn"
               style={{ border: '1px solid rgba(239, 68, 68, 0.15)', color: 'var(--color-red)', background: state.incidents.some(i=>i.id==='incident-power') ? 'rgba(239,68,68,0.05)' : 'transparent' }}
               onClick={() => triggerScenario('POWER_OUTAGE')}
             >
-              <Zap size={14} /> Sec 108 Grid Outage
+              <Zap size={14} aria-hidden="true" /> Sec 108 Grid Outage
             </button>
             
             <div style={{ borderTop: '1px solid rgba(255,255,255,0.03)', margin: '8px 0' }} />
@@ -253,7 +261,7 @@ export default function AdminDashboard({
               style={{ background: 'var(--bg-tertiary)', border: 'var(--border-glass)', justifyContent: 'center', color: 'var(--text-secondary)' }}
               onClick={resetSystem}
             >
-              <RefreshCw size={12} /> Recalibrate Systems
+              <RefreshCw size={12} aria-hidden="true" /> Recalibrate Systems
             </button>
           </div>
         </div>
@@ -359,9 +367,10 @@ export default function AdminDashboard({
 
             {logView === 'operations' && (
               <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Filter size={9} style={{ color: 'var(--text-muted)' }} />
+                <Filter size={9} style={{ color: 'var(--text-muted)' }} aria-hidden="true" />
                 <select 
                   value={logFilter} 
+                  aria-label="Filter Log Source"
                   onChange={(e) => setLogFilter(e.target.value)}
                   style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)', border: 'var(--border-glass)', borderRadius: '4px', fontSize: '8.5px', fontFamily: 'var(--font-mono)', padding: '2px 4px', outline: 'none' }}
                 >
@@ -553,14 +562,15 @@ export default function AdminDashboard({
               padding: '3px'
             }}>
               {[
-                { area: 'up', dir: 'up', icon: <ChevronUp size={11} /> },
-                { area: 'left', dir: 'left', icon: <ChevronLeft size={11} /> },
-                { area: 'right', dir: 'right', icon: <ChevronRight size={11} /> },
-                { area: 'down', dir: 'down', icon: <ChevronDown size={11} /> },
+                { area: 'up', dir: 'up', icon: <ChevronUp size={11} aria-hidden="true" /> },
+                { area: 'left', dir: 'left', icon: <ChevronLeft size={11} aria-hidden="true" /> },
+                { area: 'right', dir: 'right', icon: <ChevronRight size={11} aria-hidden="true" /> },
+                { area: 'down', dir: 'down', icon: <ChevronDown size={11} aria-hidden="true" /> },
               ].map(btn => (
                 <button 
                   key={btn.area}
                   onClick={() => handlePan(btn.dir)} 
+                  aria-label={`Pan camera ${btn.dir}`}
                   style={{ gridArea: btn.area, background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', transition: 'color 0.2s' }}
                   onMouseEnter={e => e.target.style.color = 'var(--color-cyan)'}
                   onMouseLeave={e => e.target.style.color = 'var(--text-secondary)'}
@@ -568,7 +578,7 @@ export default function AdminDashboard({
                   {btn.icon}
                 </button>
               ))}
-              <div style={{ gridArea: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '7px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>PTZ</div>
+              <div style={{ gridArea: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '7px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }} aria-hidden="true">PTZ</div>
             </div>
           </div>
         </div>

@@ -6,6 +6,19 @@ import {
 } from 'lucide-react';
 import { addLog } from '../utils/simulationEngine';
 
+// Utility for input sanitization to prevent injection and XSS
+function sanitizeInput(text) {
+  if (typeof text !== 'string') return '';
+  return text
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;")
+    .replace(/\//g, "&#x2F;")
+    .trim()
+    .slice(0, 150); // Bound length check
+}
+
 export default function FanApp({ state, aiData, updateState }) {
   const [activeTab, setActiveTab] = useState('ticket');
   const [chatMessages, setChatMessages] = useState([
@@ -25,7 +38,9 @@ export default function FanApp({ state, aiData, updateState }) {
 
   // Auto-scroll chat
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (chatEndRef.current && typeof chatEndRef.current.scrollIntoView === 'function') {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [chatMessages]);
 
   // Order progress simulation
@@ -52,35 +67,45 @@ export default function FanApp({ state, aiData, updateState }) {
 
   const handleOrder = () => {
     if (!customizingItem) return;
+    if (customizingItem.stockLevel <= 0) return;
     
-    const priceMultiplier = aiData?.pricingAdjustments[customizingItem.id] || 1.0;
+    let priceMultiplier = Number(aiData?.pricingAdjustments[customizingItem.id] || 1.0);
+    // Security pricing guard
+    if (isNaN(priceMultiplier) || priceMultiplier < 0.1 || priceMultiplier > 10.0) {
+      priceMultiplier = 1.0;
+    }
     const finalPrice = (customizingItem.price * priceMultiplier).toFixed(2);
+
+    const safeToppings = Array.isArray(selectedToppings)
+      ? selectedToppings.slice(0, 10).map(t => sanitizeInput(t))
+      : [];
 
     setActiveOrder({
       itemName: customizingItem.popularItem,
       concessionName: customizingItem.name,
-      toppings: selectedToppings,
+      toppings: safeToppings,
       price: finalPrice
     });
     setOrderProgress(0);
     
     const tempState = JSON.parse(JSON.stringify(state));
-    addLog(tempState, "TRANSIT", "Fan App", `Mobile pre-order: ${customizingItem.popularItem} (+${selectedToppings.join(', ')}) from ${customizingItem.name} confirmed.`);
+    addLog(tempState, "TRANSIT", "Fan App", `Mobile pre-order: ${customizingItem.popularItem} (+${safeToppings.join(', ')}) from ${customizingItem.name} confirmed.`);
     updateState(tempState);
     setCustomizingItem(null);
   };
 
   const sendFanMessage = (text) => {
-    if (!text.trim()) return;
+    const sanitized = sanitizeInput(text);
+    if (!sanitized) return;
 
-    const newMessages = [...chatMessages, { sender: 'User', text, time: new Date().toTimeString().slice(0, 5) }];
+    const newMessages = [...chatMessages, { sender: 'User', text: sanitized, time: new Date().toTimeString().slice(0, 5) }];
     setChatMessages(newMessages);
     setChatInput('');
     setIsTyping(true);
 
     setTimeout(() => {
       let responseText = "Accessing AURA telemetry...";
-      const query = text.toLowerCase();
+      const query = sanitized.toLowerCase();
       
       if (query.includes('seat') || query.includes('get to') || query.includes('find my')) {
         responseText = "📍 Seating coordinates: Section 108, Row K, Seat 14.\n\nPath suggestion: Enter through Gate B (East) -> walk 15m straight -> take Escalator 4 up to Concourse 100 -> Section 108 corridor will be on your left. Corridor is clear, ETA: 3 minutes.";
@@ -197,6 +222,8 @@ export default function FanApp({ state, aiData, updateState }) {
           {aiData?.fanAlerts.map((alert, idx) => (
             <div 
               key={`alert-${idx}`} 
+              role="alert"
+              aria-live="assertive"
               className="glass-panel-cyan animate-slide-down" 
               style={{ 
                 padding: '12px 14px', marginBottom: '14px', 
@@ -205,7 +232,7 @@ export default function FanApp({ state, aiData, updateState }) {
               }}
             >
               <div style={{ fontWeight: 700, color: 'var(--color-cyan)', display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px', fontSize: '10px' }}>
-                <Navigation size={10} /> {alert.title}
+                <Navigation size={10} aria-hidden="true" /> {alert.title}
               </div>
               <div style={{ color: 'var(--text-primary)', lineHeight: 1.4, fontSize: '10.5px' }}>{alert.message}</div>
             </div>
@@ -213,7 +240,7 @@ export default function FanApp({ state, aiData, updateState }) {
 
           {/* ===== TICKET TAB ===== */}
           {activeTab === 'ticket' && (
-            <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div id="tabpanel-ticket" role="tabpanel" aria-labelledby="tab-ticket" className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               
               {/* Premium Holographic Ticket */}
               <div className="glass-panel hologram-ticket" style={{ 
@@ -292,7 +319,7 @@ export default function FanApp({ state, aiData, updateState }) {
 
           {/* ===== WAYFINDING TAB ===== */}
           {activeTab === 'wayfinding' && (
-            <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div id="tabpanel-wayfinding" role="tabpanel" aria-labelledby="tab-wayfinding" className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div className="glass-panel" style={{ padding: '14px 18px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                   <span style={{ fontSize: '11px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -379,7 +406,7 @@ export default function FanApp({ state, aiData, updateState }) {
 
           {/* ===== CONCESSIONS TAB ===== */}
           {activeTab === 'concessions' && (
-            <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '14px', flex: 1 }}>
+            <div id="tabpanel-concessions" role="tabpanel" aria-labelledby="tab-concessions" className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '14px', flex: 1 }}>
               
               {/* Order Customizer Overlay Modal */}
               {customizingItem && (
@@ -390,6 +417,7 @@ export default function FanApp({ state, aiData, updateState }) {
                     </span>
                     <button 
                       onClick={() => setCustomizingItem(null)}
+                      aria-label="Close Customizer"
                       style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '11px' }}
                     >
                       ✕ Cancel
@@ -406,6 +434,8 @@ export default function FanApp({ state, aiData, updateState }) {
                         <button
                           key={top}
                           onClick={() => toggleTopping(top)}
+                          aria-pressed={selectedToppings.includes(top)}
+                          aria-label={`Toggle ${top} topping`}
                           style={{
                             padding: '4px 10px', fontSize: '9px', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 'var(--radius-pill)',
                             background: selectedToppings.includes(top) ? 'var(--color-cyan)' : 'transparent',
@@ -421,6 +451,8 @@ export default function FanApp({ state, aiData, updateState }) {
                         <button
                           key={top}
                           onClick={() => toggleTopping(top)}
+                          aria-pressed={selectedToppings.includes(top)}
+                          aria-label={`Toggle ${top} topping`}
                           style={{
                             padding: '4px 10px', fontSize: '9px', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 'var(--radius-pill)',
                             background: selectedToppings.includes(top) ? 'var(--color-cyan)' : 'transparent',
@@ -527,6 +559,7 @@ export default function FanApp({ state, aiData, updateState }) {
                           style={{ padding: '4px 10px', fontSize: '9px', borderRadius: '4px' }}
                           onClick={() => initiateCustomizer(con)}
                           disabled={con.stockLevel <= 0}
+                          aria-label={con.stockLevel <= 0 ? `${con.popularItem} from ${con.name} is Sold Out` : `Pre-order ${con.popularItem} from ${con.name}`}
                         >
                           {con.stockLevel <= 0 ? 'SOLD OUT' : 'Pre-order'}
                         </button>
@@ -541,7 +574,7 @@ export default function FanApp({ state, aiData, updateState }) {
 
           {/* ===== CHAT TAB ===== */}
           {activeTab === 'chat' && (
-            <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+            <div id="tabpanel-chat" role="tabpanel" aria-labelledby="tab-chat" className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
               
               {/* Messages list */}
               <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px', paddingRight: '4px', marginBottom: '10px' }}>
@@ -613,6 +646,7 @@ export default function FanApp({ state, aiData, updateState }) {
               <div style={{ display: 'flex', gap: '6px', borderTop: '1px solid rgba(255,255,255,0.03)', paddingTop: '8px' }}>
                 <input 
                   type="text" 
+                  aria-label="Ask AURA Smart Stadium Companion"
                   value={chatInput} 
                   onChange={(e) => setChatInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') sendFanMessage(chatInput); }}
@@ -621,10 +655,11 @@ export default function FanApp({ state, aiData, updateState }) {
                 />
                 <button 
                   className="mode-btn active"
+                  aria-label="Send message to AI companion"
                   style={{ padding: '0 12px', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                   onClick={() => sendFanMessage(chatInput)}
                 >
-                  <Send size={11} />
+                  <Send size={11} aria-hidden="true" />
                 </button>
               </div>
 
@@ -634,7 +669,7 @@ export default function FanApp({ state, aiData, updateState }) {
         </div>
 
         {/* BOTTOM TAB MENU SWITCHER */}
-        <div className="phone-tab-bar">
+        <div className="phone-tab-bar" role="tablist" aria-label="Fan app sections">
           {[
             { id: 'ticket', icon: <TicketIcon size={16} />, label: 'TICKET' },
             { id: 'wayfinding', icon: <Compass size={16} />, label: 'WAYFINDING' },
@@ -643,6 +678,10 @@ export default function FanApp({ state, aiData, updateState }) {
           ].map(tab => (
             <button
               key={tab.id}
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              aria-controls={`tabpanel-${tab.id}`}
+              id={`tab-${tab.id}`}
               className={`phone-tab-btn ${activeTab === tab.id ? 'active' : ''}`}
               onClick={() => setActiveTab(tab.id)}
             >
