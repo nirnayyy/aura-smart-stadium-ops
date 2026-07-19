@@ -5,6 +5,7 @@ import {
   Wifi, Battery, Train
 } from 'lucide-react';
 import { addLog } from '../utils/simulationEngine';
+import { askGemini, isGeminiConfigured } from '../utils/geminiService';
 
 // Utility for input sanitization to prevent injection and XSS
 function sanitizeInput(text) {
@@ -94,7 +95,7 @@ export default function FanApp({ state, aiData, updateState }) {
     setCustomizingItem(null);
   };
 
-  const sendFanMessage = (text) => {
+  const sendFanMessage = async (text) => {
     const sanitized = sanitizeInput(text);
     if (!sanitized) return;
 
@@ -103,6 +104,18 @@ export default function FanApp({ state, aiData, updateState }) {
     setChatInput('');
     setIsTyping(true);
 
+    if (isGeminiConfigured()) {
+      try {
+        const reply = await askGemini(sanitized, state);
+        setIsTyping(false);
+        setChatMessages(prev => [...prev, { sender: 'AI', text: reply, time: new Date().toTimeString().slice(0, 5) }]);
+        return;
+      } catch (err) {
+        console.warn("Gemini API error, falling back to heuristics:", err);
+      }
+    }
+
+    // Heuristics Fallback Engine
     setTimeout(() => {
       let responseText = "Accessing AURA telemetry...";
       const query = sanitized.toLowerCase();

@@ -132,7 +132,7 @@ export default function AdminDashboard({
   }, []);
 
   // Determine active camera details based on incidents
-  const getCameraStatus = () => {
+  const getCameraStatus = React.useCallback(() => {
     if (state.incidents.find(i => i.id === 'incident-gate-c') && activeCam === 'CAM_04') {
       return { status: 'BOTTLENECK DETECTED', sub: 'QUEUE OVERFLOW ACTIVE', color: 'var(--color-red)' };
     }
@@ -143,12 +143,12 @@ export default function AdminDashboard({
       return { status: 'SENSORS OFFLINE', sub: 'BACKUP TELEMETRY STREAM', color: 'var(--color-amber)' };
     }
     return { status: 'NOMINAL FEED', sub: 'ALL SECURE', color: 'var(--color-green)' };
-  };
+  }, [state.incidents, activeCam]);
 
   const camFeedStatus = getCameraStatus();
 
   // PTZ Control simulation
-  const handlePan = (direction) => {
+  const handlePan = React.useCallback((direction) => {
     setCamPan(prev => {
       let { x, y } = prev;
       if (direction === 'up') y = Math.min(15, y + 5);
@@ -157,7 +157,7 @@ export default function AdminDashboard({
       if (direction === 'right') x = Math.min(15, x + 5);
       return { x, y };
     });
-  };
+  }, []);
 
   // Filtered operational logs
   const filteredLogs = useMemo(() => {

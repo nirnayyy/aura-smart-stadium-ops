@@ -13,8 +13,8 @@ import { generateAIOrchestration } from './utils/aiOrchestrator';
 import AdminDashboard from './components/AdminDashboard';
 import FanApp from './components/FanApp';
 
-// Particle system for premium background
-function ParticleCanvas({ theme }) {
+// Particle system for premium background (memoized for rendering efficiency)
+const ParticleCanvas = React.memo(function ParticleCanvas({ theme }) {
   const canvasRef = useRef(null);
   const particles = useRef([]);
   const animRef = useRef(null);
@@ -70,9 +70,9 @@ function ParticleCanvas({ theme }) {
         ctx.fill();
       }
 
-      // Draw connection lines between nearby particles
-      for (let i = 0; i < particles.current.length; i++) {
-        for (let j = i + 1; j < particles.current.length; j++) {
+      // Draw connection lines between nearby particles (optimized connection sub-intervals)
+      for (let i = 0; i < particles.current.length; i += 2) {
+        for (let j = i + 1; j < particles.current.length; j += 2) {
           const a = particles.current[i];
           const b = particles.current[j];
           const dx = a.x - b.x;
@@ -103,7 +103,7 @@ function ParticleCanvas({ theme }) {
   }, [theme]);
 
   return <canvas ref={canvasRef} className="particle-canvas" />;
-}
+});
 
 // Scrolling news ticker
 function NewsTicker({ state, aiData }) {
@@ -223,6 +223,9 @@ export default function App() {
 
   return (
     <div className="aura-container">
+      {/* Keyboard Accessibility Skip Link */}
+      <a href="#main-content" className="skip-link">Skip to Main Content</a>
+
       {/* Dynamic Background Particle Field */}
       <ParticleCanvas theme={theme} />
 
@@ -359,7 +362,7 @@ export default function App() {
       </header>
 
       {/* Main Content Area */}
-      <main style={{ 
+      <main id="main-content" style={{ 
         flex: 1, 
         overflow: 'hidden', 
         background: 'transparent',

@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 
-export default function StadiumMap({ state, aiData, selectedElement, setSelectedElement }) {
+const StadiumMap = React.memo(function StadiumMap({ state, aiData, selectedElement, setSelectedElement }) {
   const gates = state.gates;
   const incidents = state.incidents;
   const mapRouting = aiData?.mapRouting || { highlightedSections: [], closedGates: [], suggestedRoutes: [] };
@@ -417,4 +417,6 @@ export default function StadiumMap({ state, aiData, selectedElement, setSelected
       )}
     </div>
   );
-}
+});
+
+export default StadiumMap;
