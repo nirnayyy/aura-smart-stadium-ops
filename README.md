@@ -1,7 +1,17 @@
-# AURA 3.0: Cooperative Multi-Agent Smart Stadium Operations
-### FIFA World Cup 2026 Smart Stadium Telemetry Grid & Fan Companion Console
+# AURA 3.0: GenAI-Powered Smart Stadium Operations & Fan Experience Assistance
+### FIFA World Cup 2026 Real-Time Multi-Agent AI Assistance Engine
 
-AURA 3.0 is an interactive, high-fidelity operations console and fan companion simulator built for the FIFA World Cup 2026. It demonstrates how a cooperative team of specialized AI agents can collaborate in real time to resolve complex, concurrent stadium incidents—such as gate jams, medical emergencies, sudden storms, and concession stockouts—without overloading human operators.
+AURA 3.0 is an interactive, high-fidelity operations console and fan companion simulator built for the FIFA World Cup 2026. It demonstrates how a cooperative team of specialized AI agents, powered by **Google Gemini 1.5 Flash**, collaborates in real time to resolve complex stadium incidents—such as gate jams, medical emergencies, sudden storms, and concession stockouts—without overloading human operators.
+
+---
+
+## Hackathon Problem Statement Alignment
+
+> **Challenge:** *Create a GenAI-powered solution to optimize stadium operations and enhance the FIFA World Cup 2026 experience through intelligent, real-time assistance.*
+
+AURA 3.0 addresses this directly by integrating **Google Gemini 1.5 Flash** across two critical surfaces:
+1. **Intelligent Spectator Assistance:** A real-time mobile concierge chatbot that ingests live venue telemetry (gate queues, seating corridors, food menu stock, weather updates) to provide fans with personalized guidance and accurate ETAs.
+2. **Cooperative Operational Optimization:** A multi-agent engine where four specialized AI agents (CrowdFlow AI, IncidentCmd AI, FanExp AI, ConcessOptimizer AI) negotiate dynamic traffic rerouting, mobile food vouchers, and digital signage directives to maintain safety and venue satisfaction.
 
 ---
 
@@ -115,8 +125,8 @@ Make sure you have Node.js (v18+) installed on your machine.
 ### Installation
 Clone the repository and install the dependencies:
 ```bash
-git clone https://github.com/YOUR_USERNAME/aura-stadium-ops.git
-cd aura-stadium-ops
+git clone https://github.com/nirnayyy/aura-smart-stadium-ops.git
+cd aura-smart-stadium-ops
 npm install
 ```
 

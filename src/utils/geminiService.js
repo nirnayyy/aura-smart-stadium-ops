@@ -1,6 +1,14 @@
+/**
+ * Google Gemini Generative AI Integration Service
+ * @module geminiService
+ * @description Interfaces with Google Gemini 1.5 Flash to provide real-time spectator chat and multi-agent negotiation dialogue.
+ */
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Returns true if a key is configured
+/**
+ * Evaluates whether a valid Google Gemini API key is configured in the environment.
+ * @returns {boolean} True if key is set.
+ */
 export function isGeminiConfigured() {
   const key = import.meta.env.VITE_GEMINI_API_KEY || '';
   return typeof key === 'string' && key.trim().length > 0;
@@ -55,7 +63,12 @@ GUIDELINES FOR INSTRUCTIONS:
 4. Keep the style modern, clear, and action-oriented. Provide ETA values.`;
 }
 
-// Interacts with Google Gemini generative API model
+/**
+ * Queries Google Gemini 1.5 Flash model with full stadium telemetry context.
+ * @param {string} message - Natural language fan question.
+ * @param {Object} state - Active stadium state.
+ * @returns {Promise<string>} AI assistant text answer.
+ */
 export async function askGemini(message, state) {
   if (!isGeminiConfigured()) {
     throw new Error("Gemini API Key is not configured in environment.");
@@ -86,7 +99,11 @@ export async function askGemini(message, state) {
   }
 }
 
-// Generates dynamic dialogue showing 4 agents negotiating in real-time
+/**
+ * Generates dynamic multi-agent negotiation dialogue using Google Gemini 1.5 Flash.
+ * @param {Object} state - Active stadium state.
+ * @returns {Promise<Array<{agent: string, text: string}>>} Array of agent dialogue objects.
+ */
 export async function generateAgentNegotiation(state) {
   if (!isGeminiConfigured()) {
     throw new Error("Gemini API Key is not configured in environment.");

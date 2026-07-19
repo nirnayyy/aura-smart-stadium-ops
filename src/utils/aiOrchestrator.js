@@ -1,6 +1,13 @@
-// AURA Multi-Agent Operations & Experience AI Orchestrator - Upgraded Version
-// Simulates state-aware operational intelligence and multi-agent negotiations.
+/**
+ * AURA Multi-Agent Operations AI Orchestrator
+ * @module aiOrchestrator
+ * @description Coordinates four specialized AI agents to generate real-time operational recommendations and negotiation logs.
+ */
 
+/**
+ * Registry of cooperative AI agents with display titles, roles, and visual badges.
+ * @type {Object}
+ */
 export const AGENTS = {
   CROWD_FLOW: {
     name: "CrowdFlow AI",
@@ -28,6 +35,11 @@ export const AGENTS = {
   }
 };
 
+/**
+ * Evaluates stadium telemetry and generates agent recommendations, fan alerts, route highlights, and pricing shifts.
+ * @param {Object} state - Current stadium state.
+ * @returns {Object} Orchestration payload.
+ */
 export function generateAIOrchestration(state) {
   const recommendations = [];
   const fanAlerts = [];

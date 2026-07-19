@@ -1,6 +1,13 @@
-// AURA Stadium Simulation Engine - Upgraded Version
-// Tracks match-day telemetry, crowd density, sentiment, concession supply levels, transit, and active incidents.
+/**
+ * AURA Stadium Telemetry & Simulation Engine
+ * @module simulationEngine
+ * @description Tracks match-day telemetry, crowd density, sentiment, concession supply levels, transit, and active incidents.
+ */
 
+/**
+ * Default stadium telemetry state for the FIFA World Cup 2026 final simulation.
+ * @type {Object}
+ */
 export const INITIAL_STADIUM_STATE = {
   matchInfo: {
     title: "Argentina vs. France",
@@ -44,7 +51,11 @@ export const INITIAL_STADIUM_STATE = {
   restockStatus: "Idle", // Idle, Dispatching, In Progress
 };
 
-// Simulation tick: updates queues, concession waits, transit timers, sentiment, and weather
+/**
+ * Advances the simulation by one tick, updating clock, queues, concession waits, transit, and sentiment index.
+ * @param {Object} state - Current stadium state.
+ * @returns {Object} Deep-cloned updated stadium state.
+ */
 export function tickSimulation(state) {
   const newState = JSON.parse(JSON.stringify(state));
 
@@ -189,6 +200,13 @@ export function tickSimulation(state) {
   return newState;
 }
 
+/**
+ * Prepends a timestamped log entry to the state logs buffer.
+ * @param {Object} state - Stadium state object.
+ * @param {string} type - Log category.
+ * @param {string} sender - Subsystem or sensor name.
+ * @param {string} message - Human-readable log string.
+ */
 export function addLog(state, type, sender, message) {
   const now = new Date();
   const timeStr = now.toTimeString().split(' ')[0];
@@ -196,7 +214,10 @@ export function addLog(state, type, sender, message) {
   if (state.logs.length > 80) state.logs.pop();
 }
 
-// Scenarios Setup
+/**
+ * Triggerable operational emergency and match scenarios.
+ * @type {Object}
+ */
 export const SCENARIOS = {
   GATE_JAM: {
     id: "GATE_JAM",

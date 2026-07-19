@@ -1,8 +1,9 @@
 {
-  "name": "w4",
+  "name": "aura-smart-stadium-ops",
   "private": true,
-  "version": "0.0.0",
+  "version": "3.0.0",
   "type": "module",
+  "description": "GenAI-powered smart stadium operations and fan experience assistant for FIFA World Cup 2026.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
