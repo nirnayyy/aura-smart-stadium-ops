@@ -1,4 +1,4 @@
-import { GoogleGenAI } from '@google/generative-ai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Retrieve the API Key from Vite env variables
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
@@ -65,8 +65,8 @@ export async function askGemini(message, state) {
 
   try {
     // Initialize the library using current key structure
-    const genAI = new GoogleGenAI({ apiKey: API_KEY });
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const genAI = new GoogleGenerativeAI(API_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const systemPrompt = compileSystemPrompt(state);
     
