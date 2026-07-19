@@ -4,6 +4,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import App from '../App';
 import FanApp from '../components/FanApp';
 import AdminDashboard from '../components/AdminDashboard';
+import ErrorBoundary from '../components/ErrorBoundary';
 import { INITIAL_STADIUM_STATE } from '../utils/simulationEngine';
 import { generateAIOrchestration } from '../utils/aiOrchestrator';
 
@@ -112,5 +113,64 @@ describe('AURA React Components Integration', () => {
     const gateJamBtn = screen.getByRole('button', { name: /Gate C Turnstile Jam/i });
     fireEvent.click(gateJamBtn);
     expect(mockTrigger).toHaveBeenCalledWith('GATE_JAM');
+  });
+
+  it('handles AdminDashboard camera panning, CCTV filters, and logs console tabs', () => {
+    const mockAiData = generateAIOrchestration(INITIAL_STADIUM_STATE);
+    const mockSetSelected = vi.fn();
+
+    render(
+      <AdminDashboard 
+        state={INITIAL_STADIUM_STATE}
+        aiData={mockAiData}
+        triggerScenario={vi.fn()}
+        resetSystem={vi.fn()}
+        selectedElement={null}
+        setSelectedElement={mockSetSelected}
+      />
+    );
+
+    // Click CCTV filter mode button (e.g. thermal)
+    const thermalBtn = screen.getByRole('button', { name: /thermal/i });
+    fireEvent.click(thermalBtn);
+
+    // Switch cameras (CAM-08)
+    const cam8Btn = screen.getByRole('button', { name: /CAM-08 \(East Stand 108\)/i });
+    fireEvent.click(cam8Btn);
+
+    // Pan camera left
+    const panLeftBtn = screen.getByRole('button', { name: /Pan camera left/i });
+    fireEvent.click(panLeftBtn);
+
+    // Switch tabs: AGENT DIALOGS
+    const agentTab = screen.getByRole('button', { name: /AGENT DIALOGS/i });
+    fireEvent.click(agentTab);
+
+    // Switch back: LOG CONSOLE
+    const logTab = screen.getByRole('button', { name: /LOG CONSOLE/i });
+    fireEvent.click(logTab);
+
+    // Change log filter source
+    const filterSelect = screen.getByLabelText(/Filter Log Source/i);
+    fireEvent.change(filterSelect, { target: { value: 'ALERT' } });
+  });
+
+  it('ErrorBoundary should catch render crashes and display system outage details', () => {
+    const BadComponent = () => {
+      throw new Error("Simulated telemetry crash");
+    };
+
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    render(
+      <ErrorBoundary>
+        <BadComponent />
+      </ErrorBoundary>
+    );
+
+    expect(screen.getByText(/CRITICAL VEIL DETECTED: TELEMETRY DOWN/i)).toBeInTheDocument();
+    expect(screen.getByText(/Simulated telemetry crash/i)).toBeInTheDocument();
+
+    spy.mockRestore();
   });
 });

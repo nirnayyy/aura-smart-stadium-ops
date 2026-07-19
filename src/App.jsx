@@ -9,7 +9,9 @@ import {
   addLog, 
   SCENARIOS 
 } from './utils/simulationEngine';
+import PropTypes from 'prop-types';
 import { generateAIOrchestration } from './utils/aiOrchestrator';
+import { isGeminiConfigured, generateAgentNegotiation } from './utils/geminiService';
 import AdminDashboard from './components/AdminDashboard';
 import FanApp from './components/FanApp';
 
@@ -105,6 +107,10 @@ const ParticleCanvas = React.memo(function ParticleCanvas({ theme }) {
   return <canvas ref={canvasRef} className="particle-canvas" />;
 });
 
+ParticleCanvas.propTypes = {
+  theme: PropTypes.string.isRequired
+};
+
 // Scrolling news ticker
 function NewsTicker({ state, aiData }) {
   const items = [
@@ -141,6 +147,11 @@ function NewsTicker({ state, aiData }) {
   );
 }
 
+NewsTicker.propTypes = {
+  state: PropTypes.object.isRequired,
+  aiData: PropTypes.object.isRequired
+};
+
 // Live system clock
 function SystemClock() {
   const [time, setTime] = useState(new Date());
@@ -164,7 +175,6 @@ function SystemClock() {
     </div>
   );
 }
-
 export default function App() {
   const [state, setState] = useState(INITIAL_STADIUM_STATE);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -172,11 +182,50 @@ export default function App() {
   const [viewMode, setViewMode] = useState('both');
   const [selectedElement, setSelectedElement] = useState(null);
   const [theme, setTheme] = useState('dark');
+  const [dynamicDialogue, setDynamicDialogue] = useState(null);
+  const [isGeneratingDialogue, setIsGeneratingDialogue] = useState(false);
 
   // Bind active theme to data-theme attribute on document body
   useEffect(() => {
     document.body.setAttribute('data-theme', theme);
   }, [theme]);
+
+  // Dynamically generate multi-agent operations negotiations using Gemini if available
+  useEffect(() => {
+    if (state.incidents.length === 0) {
+      setDynamicDialogue(null);
+      return;
+    }
+
+    if (!isGeminiConfigured()) return;
+
+    let active = true;
+    const fetchDialogue = async () => {
+      setIsGeneratingDialogue(true);
+      try {
+        const dialogue = await generateAgentNegotiation(state);
+        if (active) {
+          setDynamicDialogue(dialogue);
+        }
+      } catch (err) {
+        console.warn("Failed to generate dynamic dialogue via Gemini:", err);
+      } finally {
+        if (active) {
+          setIsGeneratingDialogue(false);
+        }
+      }
+    };
+
+    const timeout = setTimeout(() => {
+      fetchDialogue();
+    }, 700);
+
+    return () => {
+      active = false;
+      clearTimeout(timeout);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.incidents]);
 
   // Run simulation clock loop using configurable speed
   useEffect(() => {
@@ -387,6 +436,8 @@ export default function App() {
                 resetSystem={resetSystem}
                 selectedElement={selectedElement}
                 setSelectedElement={setSelectedElement}
+                dynamicDialogue={dynamicDialogue}
+                isGeneratingDialogue={isGeneratingDialogue}
               />
             </div>
             <div style={{ 
@@ -414,6 +465,8 @@ export default function App() {
               resetSystem={resetSystem}
               selectedElement={selectedElement}
               setSelectedElement={setSelectedElement}
+              dynamicDialogue={dynamicDialogue}
+              isGeneratingDialogue={isGeneratingDialogue}
             />
           </div>
         )}

@@ -990,3 +990,23 @@ body {
 .skip-link:focus-visible {
   top: 20px;
 }
+
+/* Container classes extracted from inline layout wrappers */
+.fanapp-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  padding: 12px 0;
+}
+
+.ad-layout-container {
+  display: grid;
+  grid-template-columns: 300px 1fr 370px;
+  gap: 20px;
+  padding: 20px;
+  flex: 1;
+  height: calc(100vh - 92px);
+  overflow: hidden;
+  background: transparent;
+}

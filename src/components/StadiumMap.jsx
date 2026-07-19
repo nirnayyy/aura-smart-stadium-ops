@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import PropTypes from 'prop-types';
 
 const StadiumMap = React.memo(function StadiumMap({ state, aiData, selectedElement, setSelectedElement }) {
   const gates = state.gates;
@@ -418,5 +419,12 @@ const StadiumMap = React.memo(function StadiumMap({ state, aiData, selectedEleme
     </div>
   );
 });
+
+StadiumMap.propTypes = {
+  state: PropTypes.object.isRequired,
+  aiData: PropTypes.object.isRequired,
+  selectedElement: PropTypes.object,
+  setSelectedElement: PropTypes.func.isRequired
+};
 
 export default StadiumMap;

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import PropTypes from 'prop-types';
 import { 
   Activity, AlertTriangle, Cpu, RefreshCw, 
   Terminal, Video, Users, CloudLightning,
@@ -102,7 +103,9 @@ export default function AdminDashboard({
   triggerScenario, 
   resetSystem, 
   selectedElement, 
-  setSelectedElement 
+  setSelectedElement,
+  dynamicDialogue = null,
+  isGeneratingDialogue = false
 }) {
   const [activeCam, setActiveCam] = useState('CAM_04');
   const [cctvNoise, setCctvNoise] = useState(false);
@@ -194,16 +197,7 @@ export default function AdminDashboard({
   };
 
   return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: '300px 1fr 370px',
-      gap: '20px',
-      padding: '20px',
-      flex: 1,
-      height: 'calc(100vh - 92px)',
-      overflow: 'hidden',
-      background: 'transparent'
-    }}>
+    <div className="ad-layout-container">
       
       {/* LEFT COLUMN: CONTROLS & TELEMETRY */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', overflowY: 'auto' }}>
@@ -413,7 +407,30 @@ export default function AdminDashboard({
                 ))
               )
             ) : (
-              aiData?.negotiationLogs.length === 0 ? (
+              isGeneratingDialogue ? (
+                <div style={{ padding: '20px', textAlign: 'center', color: 'var(--color-cyan)', fontSize: '10.5px' }}>
+                  <span className="loading-dots">AURA Operations Channel Active. Querying Gemini...</span>
+                </div>
+              ) : dynamicDialogue ? (
+                <div key="negotiation-gemini" style={{ marginBottom: '12px', padding: '10px', borderRadius: 'var(--radius-sm)', background: 'rgba(255,255,255,0.01)', border: 'var(--border-glass)' }}>
+                  <div style={{ fontWeight: 'bold', color: 'var(--color-cyan)', fontSize: '9.5px', letterSpacing: '0.05em', marginBottom: '6px', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '4px' }}>
+                    LIVE DYNAMIC COLLABORATION DIALOGUE (POWERED BY GEMINI)
+                  </div>
+                  {dynamicDialogue.map((d, i) => (
+                    <div key={i} style={{ marginBottom: '4px', lineHeight: 1.4 }}>
+                      <span style={{ 
+                        color: d.agent.includes('IncidentCmd') ? 'var(--color-red)' : 
+                               d.agent.includes('CrowdFlow') ? 'var(--color-cyan)' : 
+                               d.agent.includes('FanExp') ? 'var(--color-magenta)' : 'var(--color-amber)', 
+                        fontWeight: 700 
+                      }}>
+                        {d.agent}:
+                      </span>{' '}
+                      <span style={{ color: 'var(--text-primary)' }}>{d.text}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : aiData?.negotiationLogs.length === 0 ? (
                 <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '10.5px' }}>
                   No active incidents. Multi-agent negotiation channels are in standby mode.
                 </div>
@@ -646,3 +663,31 @@ export default function AdminDashboard({
     </div>
   );
 }
+
+RadialGauge.propTypes = {
+  value: PropTypes.number.isRequired,
+  max: PropTypes.number.isRequired,
+  label: PropTypes.string.isRequired,
+  color: PropTypes.string,
+  size: PropTypes.number
+};
+
+Sparkline.propTypes = {
+  data: PropTypes.array.isRequired,
+  color: PropTypes.string
+};
+
+WeatherWidget.propTypes = {
+  weather: PropTypes.string.isRequired
+};
+
+AdminDashboard.propTypes = {
+  state: PropTypes.object.isRequired,
+  aiData: PropTypes.object.isRequired,
+  triggerScenario: PropTypes.func.isRequired,
+  resetSystem: PropTypes.func.isRequired,
+  selectedElement: PropTypes.object,
+  setSelectedElement: PropTypes.func.isRequired,
+  dynamicDialogue: PropTypes.array,
+  isGeneratingDialogue: PropTypes.bool
+};

@@ -1,11 +1,9 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Retrieve the API Key from Vite env variables
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
-
 // Returns true if a key is configured
 export function isGeminiConfigured() {
-  return typeof API_KEY === 'string' && API_KEY.trim().length > 0;
+  const key = import.meta.env.VITE_GEMINI_API_KEY || '';
+  return typeof key === 'string' && key.trim().length > 0;
 }
 
 // Builds the dynamic prompt structure feeding active stadium telemetry
@@ -65,7 +63,8 @@ export async function askGemini(message, state) {
 
   try {
     // Initialize the library using current key structure
-    const genAI = new GoogleGenerativeAI(API_KEY);
+    const key = import.meta.env.VITE_GEMINI_API_KEY || '';
+    const genAI = new GoogleGenerativeAI(key);
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const systemPrompt = compileSystemPrompt(state);
@@ -83,6 +82,68 @@ export async function askGemini(message, state) {
     return response.text;
   } catch (error) {
     console.error("Gemini API call failed:", error);
+    throw error;
+  }
+}
+
+// Generates dynamic dialogue showing 4 agents negotiating in real-time
+export async function generateAgentNegotiation(state) {
+  if (!isGeminiConfigured()) {
+    throw new Error("Gemini API Key is not configured in environment.");
+  }
+
+  const activeIncidents = state.incidents.map(i => 
+    `- Incident: ${i.title} (${i.severity}) in ${i.location}.`
+  ).join('\n') || "None. General operations running nominal.";
+
+  const prompt = `You are the operations coordinator for AURA smart stadium.
+There are 4 cooperative AI agents:
+1. CrowdFlow AI (optimizes gate queues and routing)
+2. IncidentCmd AI (coordinates responders, network updates)
+3. FanExp AI (sends vouchers and maps)
+4. ConcessOptimizer AI (manages concession stocks and prices)
+
+=== CURRENT STADIUM CONTEXT ===
+- Active Incidents:
+${activeIncidents}
+- Match Minute: ${state.matchInfo.minute}'
+- Score: ${state.matchInfo.score}
+- Weather: ${state.matchInfo.weather}
+- Sentiment: ${state.matchInfo.sentiment}%
+==============================
+
+Generate a short, realistic coordination dialogue showing these agents discussing, collaborating, and negotiating a plan in real-time to handle the active situation.
+Output your response ONLY as a valid JSON array of dialog objects. Do not wrap in markdown code blocks. Each dialog object must have exactly two fields:
+- "agent": one of the 4 agent names (e.g., "CrowdFlow AI", "IncidentCmd AI", "FanExp AI", "ConcessOptimizer AI").
+- "text": a short, professional dialogue contribution showing their collaboration or specific action.
+
+Example Output:
+[
+  {"agent": "IncidentCmd AI", "text": "Stretcher team dispatched. ETA is 4 minutes."},
+  {"agent": "CrowdFlow AI", "text": "Copy. Directing gate stewards to clear the concourse path."}
+]`;
+
+  try {
+    const key = import.meta.env.VITE_GEMINI_API_KEY || '';
+    const genAI = new GoogleGenerativeAI(key);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    const response = await model.generateContent({
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      generationConfig: {
+        maxOutputTokens: 500,
+        temperature: 0.7,
+        responseMimeType: "application/json"
+      }
+    });
+
+    const parsed = JSON.parse(response.text.trim());
+    if (Array.isArray(parsed)) {
+      return parsed;
+    }
+    throw new Error("Gemini returned invalid dialogue format.");
+  } catch (error) {
+    console.error("Gemini negotiation generation failed:", error);
     throw error;
   }
 }

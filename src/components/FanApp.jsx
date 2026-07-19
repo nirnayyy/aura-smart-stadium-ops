@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import PropTypes from 'prop-types';
 import { 
   Ticket as TicketIcon, ShoppingBag, MessageSquare, Compass, 
   Send, MapPin, Award, Navigation, 
@@ -166,13 +167,7 @@ export default function FanApp({ state, aiData, updateState }) {
   };
 
   return (
-    <div style={{
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      height: '100%',
-      padding: '12px 0'
-    }}>
+    <div className="fanapp-container">
       {/* PHONE SHELL */}
       <div className="phone-shell">
         
@@ -708,3 +703,9 @@ export default function FanApp({ state, aiData, updateState }) {
     </div>
   );
 }
+
+FanApp.propTypes = {
+  state: PropTypes.object.isRequired,
+  aiData: PropTypes.object.isRequired,
+  updateState: PropTypes.func.isRequired
+};
